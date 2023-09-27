@@ -1,0 +1,22 @@
+[package]
+name = "embed_md"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "embed_md"
+path = "src/main.rs"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+regex = "1.10"
+embed_md_derive = { version = "0.1.0", path = "../embed_md_derive" }
+embed_md_traits = { version = "0.1.0", path = "../embed_md_traits" }
+shellexpand = "3.1"
+sha2 = "0.10"
+hex = "0.4"
+hex-literal = "0.4"
+base64 = "0.22"
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = [
+    "embed_md",
+    "embed_md_derive",
+    "embed_md_traits",
+]

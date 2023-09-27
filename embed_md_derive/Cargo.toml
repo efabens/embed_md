@@ -1,0 +1,15 @@
+[package]
+name = "embed_md_derive"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+syn = "2.0"
+quote = "1.0"
+embed_md_traits = { version = "0.1.0", path = "../embed_md_traits" }
+
+[lib]
+name = "embed_md_derive"
+proc-macro = true
