@@ -130,7 +130,9 @@ jobs:
 
       - name: Run tests (with cross)
         if: matrix.target != ''
-        run: ${{ env.CARGO }} test --verbose --workspace ${{ env.TARGET_FLAGS }}
+        run: |
+          mkdir ~/.embed
+          ${{ env.CARGO }} test --verbose --workspace ${{ env.TARGET_FLAGS }}
 
 
   rustfmt:

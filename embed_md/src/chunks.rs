@@ -148,8 +148,9 @@ fn exec_code(text: &str, params: &HashMap<String, String>) -> Result<String, Str
     );
     let output_file_hash = wrapper.finalize();
     let output_file_hash_b64 = general_purpose::URL_SAFE_NO_PAD.encode(output_file_hash.as_slice());
-
-    let out_dir = shellexpand::tilde("~/.embed_md").to_string();
+    let binding = "~/.embed_md".to_string();
+    let out_dir_path = params.get("out_dir").unwrap_or(&binding);
+    let out_dir = shellexpand::tilde(out_dir_path).to_string();
     // Check if outdir exists if it doesn't create it
     match fs::metadata(&out_dir) {
         Ok(_) => (),
@@ -406,6 +407,7 @@ another
         let mut params = HashMap::new();
         params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert("exec_id".to_string(), "test_exec_code".to_string());
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"```shell
 echo "test"; echo "another"
@@ -426,6 +428,7 @@ echo "test"; echo "another"
         let mut params = HashMap::new();
         params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert("exec_id".to_string(), "test_exec_code_existing".to_string());
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"```shell
 echo "test"; echo "another"
@@ -454,6 +457,7 @@ another
             "exec_id".to_string(),
             "test_exec_code_existing_technically_legal".to_string(),
         );
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"```shell
 echo "test"; echo "another"
@@ -479,6 +483,7 @@ echo "test"; echo "another"
             "exec_id".to_string(),
             "test_exec_code_header_no_result".to_string(),
         );
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"```shell
 echo "test"; echo "another"
@@ -504,6 +509,7 @@ something something
             "exec_id".to_string(),
             "test_exec_code_existing_with_result_header".to_string(),
         );
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"#
                 ```shell
@@ -534,6 +540,7 @@ another
             "exec_id".to_string(),
             "test_exec_code_multi_line".to_string(),
         );
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"```shell
 echo "test"
@@ -559,6 +566,7 @@ echo "another"
             "test_exec_code_existing_with_result_header".to_string(),
         );
         params.insert("cache".to_string(), "always".to_string());
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"#
                 ```shell
