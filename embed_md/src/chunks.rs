@@ -155,10 +155,13 @@ fn exec_code(text: &str, params: &HashMap<String, String>) -> Result<String, Str
     match fs::metadata(&out_dir) {
         Err(_) => (),
         // Make this resilient to tests running in parallel in CI
-        Ok(_) => fs::create_dir(&out_dir).unwrap_or_else(|e| match e.kind() {
-            std::io::ErrorKind::AlreadyExists => (),
-            _ => panic!("Error creating directory: {}", e),
-        }),
+        Ok(_) => match fs::create_dir(&out_dir) {
+            Ok(_) => (),
+            Err(e) => match e.kind() {
+                std::io::ErrorKind::AlreadyExists => (),
+                _ => panic!("Error creating directory: {}", e),
+            },
+        },
     }
 
     let id_match = Regex::new(r"\$\$(.*?)\$\$").unwrap();
@@ -232,7 +235,10 @@ fn exec_code(text: &str, params: &HashMap<String, String>) -> Result<String, Str
                 output_file_hash_b64,
                 params.get("exec_id").unwrap()
             );
-            fs::write(id_out, &output.stdout).expect("Error writing to _file");
+            match fs::write(id_out.clone(), &output.stdout) {
+                Ok(_) => (),
+                Err(e) => panic!("Error writing to file: {}, {}", id_out, e),
+            }
 
             let maybe_new_line = match output.stdout.ends_with(&[10]) {
                 true => "",
