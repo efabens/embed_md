@@ -153,8 +153,12 @@ fn exec_code(text: &str, params: &HashMap<String, String>) -> Result<String, Str
     let out_dir = shellexpand::tilde(out_dir_path).to_string();
     // Check if outdir exists if it doesn't create it
     match fs::metadata(&out_dir) {
-        Ok(_) => (),
-        Err(_) => fs::create_dir(&out_dir).unwrap(),
+        Err(_) => (),
+        // Make this resilient to tests running in parallel in CI
+        Ok(_) => fs::create_dir(&out_dir).unwrap_or_else(|e| match e.kind() {
+            std::io::ErrorKind::AlreadyExists => (),
+            _ => panic!("Error creating directory: {}", e),
+        }),
     }
 
     let id_match = Regex::new(r"\$\$(.*?)\$\$").unwrap();
