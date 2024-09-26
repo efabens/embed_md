@@ -1,8 +1,23 @@
 # Embed MD
 
-## Exec 
+## Usage
 
-###
+```shell
+cargo build --release
+
+target/release/embed_md --help
+```
+
+Embed_md will process an entire file if no id is provided
+```shell
+embed_md path/to/file.md
+```
+A single embed can be processed by providing an id
+```shell
+embed_md path/to/file.md --id my_embed
+```
+
+see the [samples](./samples) directory for examples (this is not comprehensive)
 
 ## TODO
 
