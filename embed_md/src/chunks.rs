@@ -398,7 +398,7 @@ another
     #[test]
     fn test_exec_code() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert("exec_id".to_string(), "test_exec_code".to_string());
         let result = exec_code(
             r#"```shell
@@ -418,7 +418,7 @@ echo "test"; echo "another"
     #[test]
     fn test_exec_code_existing() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert("exec_id".to_string(), "test_exec_code_existing".to_string());
         let result = exec_code(
             r#"```shell
@@ -443,7 +443,7 @@ another
     #[test]
     fn test_exec_code_existing_technically_legal() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert(
             "exec_id".to_string(),
             "test_exec_code_existing_technically_legal".to_string(),
@@ -468,7 +468,7 @@ echo "test"; echo "another"
     #[test]
     fn test_exec_code_header_no_result() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert(
             "exec_id".to_string(),
             "test_exec_code_header_no_result".to_string(),
@@ -493,7 +493,7 @@ something something
     #[test]
     fn test_exec_code_existing_with_result_header() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert(
             "exec_id".to_string(),
             "test_exec_code_existing_with_result_header".to_string(),
@@ -523,7 +523,7 @@ another
     #[test]
     fn test_exec_code_multi_line() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert(
             "exec_id".to_string(),
             "test_exec_code_multi_line".to_string(),
@@ -547,7 +547,7 @@ echo "another"
     #[test]
     fn test_exec_code_cached_pre_result_text() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert(
             "exec_id".to_string(),
             "test_exec_code_existing_with_result_header".to_string(),
