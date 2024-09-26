@@ -153,9 +153,9 @@ fn exec_code(text: &str, params: &HashMap<String, String>) -> Result<String, Str
     let out_dir = shellexpand::tilde(out_dir_path).to_string();
     // Check if outdir exists if it doesn't create it
     match fs::metadata(&out_dir) {
-        Err(_) => (),
+        Ok(_) => (),
         // Make this resilient to tests running in parallel in CI
-        Ok(_) => match fs::create_dir(&out_dir) {
+        Err(_) => match fs::create_dir(&out_dir) {
             Ok(_) => (),
             Err(e) => match e.kind() {
                 std::io::ErrorKind::AlreadyExists => (),
