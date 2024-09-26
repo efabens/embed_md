@@ -148,7 +148,21 @@ fn exec_code(text: &str, params: &HashMap<String, String>) -> Result<String, Str
     );
     let output_file_hash = wrapper.finalize();
     let output_file_hash_b64 = general_purpose::URL_SAFE_NO_PAD.encode(output_file_hash.as_slice());
-    let out_dir = shellexpand::tilde("~/.embed_md").to_string();
+    let binding = "~/.embed_md".to_string();
+    let out_dir_path = params.get("out_dir").unwrap_or(&binding);
+    let out_dir = shellexpand::tilde(out_dir_path).to_string();
+    // Check if outdir exists if it doesn't create it
+    match fs::metadata(&out_dir) {
+        Ok(_) => (),
+        // Make this resilient to tests running in parallel in CI
+        Err(_) => match fs::create_dir(&out_dir) {
+            Ok(_) => (),
+            Err(e) => match e.kind() {
+                std::io::ErrorKind::AlreadyExists => (),
+                _ => panic!("Error creating directory: {}", e),
+            },
+        },
+    }
 
     let id_match = Regex::new(r"\$\$(.*?)\$\$").unwrap();
     let exec_replaced = id_match.replace_all(
@@ -221,7 +235,10 @@ fn exec_code(text: &str, params: &HashMap<String, String>) -> Result<String, Str
                 output_file_hash_b64,
                 params.get("exec_id").unwrap()
             );
-            fs::write(id_out, &output.stdout).expect("Error writing to _file");
+            match fs::write(id_out.clone(), &output.stdout) {
+                Ok(_) => (),
+                Err(e) => panic!("Error writing to file: {}, {}", id_out, e),
+            }
 
             let maybe_new_line = match output.stdout.ends_with(&[10]) {
                 true => "",
@@ -398,8 +415,9 @@ another
     #[test]
     fn test_exec_code() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert("exec_id".to_string(), "test_exec_code".to_string());
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"```shell
 echo "test"; echo "another"
@@ -418,8 +436,9 @@ echo "test"; echo "another"
     #[test]
     fn test_exec_code_existing() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert("exec_id".to_string(), "test_exec_code_existing".to_string());
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"```shell
 echo "test"; echo "another"
@@ -443,11 +462,12 @@ another
     #[test]
     fn test_exec_code_existing_technically_legal() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert(
             "exec_id".to_string(),
             "test_exec_code_existing_technically_legal".to_string(),
         );
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"```shell
 echo "test"; echo "another"
@@ -468,11 +488,12 @@ echo "test"; echo "another"
     #[test]
     fn test_exec_code_header_no_result() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert(
             "exec_id".to_string(),
             "test_exec_code_header_no_result".to_string(),
         );
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"```shell
 echo "test"; echo "another"
@@ -493,11 +514,12 @@ something something
     #[test]
     fn test_exec_code_existing_with_result_header() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert(
             "exec_id".to_string(),
             "test_exec_code_existing_with_result_header".to_string(),
         );
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"#
                 ```shell
@@ -523,11 +545,12 @@ another
     #[test]
     fn test_exec_code_multi_line() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert(
             "exec_id".to_string(),
             "test_exec_code_multi_line".to_string(),
         );
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"```shell
 echo "test"
@@ -547,12 +570,13 @@ echo "another"
     #[test]
     fn test_exec_code_cached_pre_result_text() {
         let mut params = HashMap::new();
-        params.insert("file_name".to_string(), "Cargo.lock".to_string());
+        params.insert("file_name".to_string(), "Cargo.toml".to_string());
         params.insert(
             "exec_id".to_string(),
             "test_exec_code_existing_with_result_header".to_string(),
         );
         params.insert("cache".to_string(), "always".to_string());
+        params.insert("out_dir".to_string(), "../test_out_dir".to_string());
         let result = exec_code(
             r#"#
                 ```shell
