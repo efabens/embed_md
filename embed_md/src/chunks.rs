@@ -148,7 +148,13 @@ fn exec_code(text: &str, params: &HashMap<String, String>) -> Result<String, Str
     );
     let output_file_hash = wrapper.finalize();
     let output_file_hash_b64 = general_purpose::URL_SAFE_NO_PAD.encode(output_file_hash.as_slice());
+    
     let out_dir = shellexpand::tilde("~/.embed_md").to_string();
+    // Check if outdir exists if it doesn't create it
+    match fs::metadata(&out_dir) {
+        Ok(_) => (),
+        Err(_) => fs::create_dir(&out_dir).unwrap(),
+    }
 
     let id_match = Regex::new(r"\$\$(.*?)\$\$").unwrap();
     let exec_replaced = id_match.replace_all(
