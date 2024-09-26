@@ -158,7 +158,7 @@ jobs:
         shell: bash
         run: |
           ${{ env.CARGO }} build --verbose --release ${{ env.TARGET_FLAGS }}
-          bin="target/${{ matrix.target }}/release/rg"
+          bin="target/${{ matrix.target }}/release/embed_md"
           echo "BIN=$bin" >> $GITHUB_ENV
 
       - name: Strip release binary (macos)
