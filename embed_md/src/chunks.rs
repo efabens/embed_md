@@ -21,8 +21,6 @@ use crate::helpers::extract_map;
 pub enum FunctionType {
     Identity(Identity),
     ExecCode(ExecCode),
-    Badge(Badge),
-    InlineBadge(InlineBadge),
 }
 
 impl FunctionType {
@@ -35,18 +33,6 @@ impl FunctionType {
     ) -> FunctionType {
         match function.as_str() {
             "identity" => FunctionType::Identity(Identity { id, is_end, range }),
-            "badge" => FunctionType::Badge(Badge {
-                id,
-                is_end,
-                params,
-                range,
-            }),
-            "inline-badge" => FunctionType::InlineBadge(InlineBadge {
-                id,
-                is_end,
-                params,
-                range,
-            }),
             "exec-code" => FunctionType::ExecCode(ExecCode {
                 id,
                 is_end,
@@ -63,8 +49,6 @@ impl Rangeable for FunctionType {
         match self {
             FunctionType::Identity(i) => i.range(),
             FunctionType::ExecCode(i) => i.range(),
-            FunctionType::Badge(i) => i.range(),
-            FunctionType::InlineBadge(i) => i.range(),
         }
     }
 
@@ -72,8 +56,6 @@ impl Rangeable for FunctionType {
         match self {
             FunctionType::Identity(i) => i.id(),
             FunctionType::ExecCode(i) => i.id(),
-            FunctionType::Badge(i) => i.id(),
-            FunctionType::InlineBadge(i) => i.id(),
         }
     }
 }
@@ -83,8 +65,6 @@ impl FunctionTag for FunctionType {
         match self {
             FunctionType::Identity(i) => i.transform(text),
             FunctionType::ExecCode(i) => i.transform(text),
-            FunctionType::Badge(i) => i.transform(text),
-            FunctionType::InlineBadge(i) => i.transform(text),
         }
     }
 }
@@ -290,87 +270,6 @@ impl FunctionTag for Identity {
     fn transform(&self, text: String) -> String {
         text.clone()
     }
-}
-
-#[derive(RangeFn, Debug, Clone, PartialEq)]
-pub struct Badge {
-    id: String,
-    is_end: bool,
-    params: HashMap<String, String>,
-    range: Range<usize>,
-}
-
-impl FunctionTag for Badge {
-    fn transform(&self, text: String) -> String {
-        text.clone()
-    }
-}
-
-#[derive(RangeFn, Debug, Clone, PartialEq)]
-pub struct InlineBadge {
-    id: String,
-    is_end: bool,
-    params: HashMap<String, String>,
-    range: Range<usize>,
-}
-
-impl FunctionTag for InlineBadge {
-    fn transform(&self, text: String) -> String {
-        inline_badge(
-            text.as_str(),
-            &self.params["color"],
-            &self.params["position"],
-        )
-        .to_string()
-    }
-}
-
-fn inline_badge(existing_text: &str, color: &str, position: &str) -> String {
-    let re = Regex::new(r#"<img src.*?badge"/>"#).unwrap();
-    let updated_text = strip_dynamic_text(existing_text, re);
-
-    let badge = you_track_badge(color, None, None);
-    format_badge(position, updated_text, badge)
-}
-
-fn you_track_badge(color: &str, left: Option<String>, right: Option<String>) -> String {
-    let left_concrete = left.unwrap_or("test".to_string());
-    {}
-    let right_concrete = right.unwrap_or("test".to_string());
-    format!(
-        "<img src=\"https://img.shields.io/badge/{left_concrete}-{right_concrete}-{color}\" alt=\"A {color} badge\"/>"
-    )
-}
-
-fn format_badge(position: &str, updated_text: String, badge: String) -> String {
-    match position {
-        "end" => {
-            if updated_text.ends_with('\n') {
-                format!("{}{}\n", updated_text.trim_end().trim_start(), badge)
-            } else {
-                format!("{}{}", updated_text, badge)
-            }
-        }
-        "start" => {
-            if updated_text.starts_with('\n') {
-                format!("{}{}", badge, updated_text.trim_start())
-            } else {
-                format!("{}{}", badge, updated_text)
-            }
-        }
-        _ => panic!("Unknown position {}", position),
-    }
-}
-
-fn strip_dynamic_text(existing_text: &str, re: Regex) -> String {
-    let updated_text = match re.captures(existing_text) {
-        Some(capture) => {
-            let first_match = capture.get(0).unwrap();
-            existing_text.replace(first_match.as_str(), "")
-        }
-        None => existing_text.to_string(),
-    };
-    updated_text
 }
 
 #[cfg(test)]
@@ -597,31 +496,5 @@ another
         let static_time = re.replace(rest.as_str(), "${ts}1111\"");
         // let static_time = result.unwrap().as_str().replace(r#"last_run=""#, "last_run=\"1697141890682\"");
         assert_eq!(static_time, EXEC_RESULT_WITH_RESULT_HEADER.to_string())
-    }
-
-    #[test]
-    fn test_you_track_badge() {
-        let color = "red";
-        let expected =
-            "<img src=\"https://img.shields.io/badge/test-test-red\" alt=\"A red badge\"/>";
-        assert_eq!(you_track_badge(color, None, None), expected);
-    }
-
-    #[test]
-    fn test_inline_badge_end_position() {
-        let existing_text = "Some existing text";
-        let color = "blue";
-        let position = "end";
-        let expected = "Some existing text<img src=\"https://img.shields.io/badge/test-test-blue\" alt=\"A blue badge\"/>";
-        assert_eq!(inline_badge(existing_text, color, position), expected);
-    }
-
-    #[test]
-    fn test_inline_badge_start_position() {
-        let existing_text = "Some existing text";
-        let color = "green";
-        let position = "start";
-        let expected = "<img src=\"https://img.shields.io/badge/test-test-green\" alt=\"A green badge\"/>Some existing text";
-        assert_eq!(inline_badge(existing_text, color, position), expected);
     }
 }

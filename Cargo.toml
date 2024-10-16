@@ -1,6 +1,5 @@
 [workspace]
 resolver = "2"
-version = "0.1.1"
 members = [
     "embed_md",
     "embed_md_derive",
